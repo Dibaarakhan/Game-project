@@ -1,0 +1,430 @@
+IND<!DOCTYPE html>
+<html>
+<head>
+    <title>Two Games Collection</title>
+
+    <style>
+        body {
+            background-color: #202040;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+        }
+
+        h1 {
+            color: yellow;
+            margin-top: 30px;
+        }
+
+        h2 {
+            color: cyan;
+        }
+
+        /* TIC TAC TOE */
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 8px;
+            justify-content: center;
+            margin: 30px auto;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            color: black;
+            font-size: 50px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .cell:hover {
+            background-color: lightblue;
+        }
+
+        #status {
+            font-size: 22px;
+            color: yellow;
+        }
+
+        button.reset {
+            padding: 12px 25px;
+            background-color: orange;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        hr {
+            margin: 50px auto;
+            width: 80%;
+            border: 1px solid cyan;
+        }
+
+        /* SNAKE GAME */
+
+        canvas {
+            background-color: black;
+            border: 4px solid lime;
+            max-width: 95%;
+        }
+
+        .snake-button {
+            background-color: lime;
+            color: black;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        #score {
+            color: yellow;
+            font-size: 22px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- TIC TAC TOE GAME -->
+
+    <h1> TIC TAC TOE GAME </h1>
+
+    <h2 id="status">Player X's Turn</h2>
+
+    <div class="board">
+
+        <button class="cell" onclick="makeMove(0)"></button>
+        <button class="cell" onclick="makeMove(1)"></button>
+        <button class="cell" onclick="makeMove(2)"></button>
+
+        <button class="cell" onclick="makeMove(3)"></button>
+        <button class="cell" onclick="makeMove(4)"></button>
+        <button class="cell" onclick="makeMove(5)"></button>
+
+        <button class="cell" onclick="makeMove(6)"></button>
+        <button class="cell" onclick="makeMove(7)"></button>
+        <button class="cell" onclick="makeMove(8)"></button>
+
+    </div>
+
+    <button class="reset" onclick="resetGame()">
+        Restart Game
+    </button>
+
+
+    <hr>
+
+
+    <!-- SNAKE GAME -->
+
+    <h1>🐍 SNAKE GAME 🐍</h1>
+
+    <h2>Score: <span id="score">0</span></h2>
+
+    <canvas id="game" width="400" height="400"></canvas>
+
+    <br><br>
+
+    <button class="snake-button" onclick="restartSnake()">
+        Restart Game
+    </button>
+
+    <p>Use Arrow Keys to move the snake.</p>
+
+
+    <script>
+
+        // TIC TAC TOE JAVASCRIPT
+
+        let currentPlayer = "X";
+
+        let gameBoard = ["", "", "", "", "", "", "", "", ""];
+
+        let gameActive = true;
+
+        const cells = document.querySelectorAll(".cell");
+
+        const status = document.getElementById("status");
+
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        function makeMove(index) {
+
+            if (gameBoard[index] !== "" || !gameActive) {
+                return;
+            }
+
+            gameBoard[index] = currentPlayer;
+
+            cells[index].innerHTML = currentPlayer;
+
+            checkWinner();
+        }
+
+        function checkWinner() {
+
+            let winner = false;
+
+            for (let condition of winningConditions) {
+
+                let a = condition[0];
+                let b = condition[1];
+                let c = condition[2];
+
+                if (
+                    gameBoard[a] !== "" &&
+                    gameBoard[a] === gameBoard[b] &&
+                    gameBoard[b] === gameBoard[c]
+                ) {
+                    winner = true;
+                    break;
+                }
+            }
+
+            if (winner) {
+
+                status.innerHTML = "Player " + currentPlayer + " Wins! 🎉";
+
+                gameActive = false;
+
+                return;
+            }
+
+            if (!gameBoard.includes("")) {
+
+                status.innerHTML = "Game Draw! 🤝";
+
+                gameActive = false;
+
+                return;
+            }
+
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+
+            status.innerHTML = "Player " + currentPlayer + "'s Turn";
+        }
+
+        function resetGame() {
+
+            currentPlayer = "X";
+
+            gameBoard = ["", "", "", "", "", "", "", "", ""];
+
+            gameActive = true;
+
+            cells.forEach(function(cell) {
+                cell.innerHTML = "";
+            });
+
+            status.innerHTML = "Player X's Turn";
+        }
+
+
+        // SNAKE GAME JAVASCRIPT
+
+        const canvas = document.getElementById("game");
+
+        const ctx = canvas.getContext("2d");
+
+        const box = 20;
+
+        let snake;
+        let food;
+        let direction;
+        let score;
+        let gameOver;
+        let gameLoop;
+
+        function startSnake() {
+
+            snake = [
+                { x: 200, y: 200 },
+                { x: 180, y: 200 },
+                { x: 160, y: 200 }
+            ];
+
+            food = {
+                x: 100,
+                y: 100
+            };
+
+            direction = "RIGHT";
+
+            score = 0;
+
+            gameOver = false;
+
+            document.getElementById("score").innerHTML = score;
+
+            clearInterval(gameLoop);
+
+            gameLoop = setInterval(drawGame, 120);
+        }
+
+        document.addEventListener("keydown", function(event) {
+
+            if (event.key === "ArrowUp" && direction !== "DOWN") {
+                direction = "UP";
+            }
+
+            else if (event.key === "ArrowDown" && direction !== "UP") {
+                direction = "DOWN";
+            }
+
+            else if (event.key === "ArrowLeft" && direction !== "RIGHT") {
+                direction = "LEFT";
+            }
+
+            else if (event.key === "ArrowRight" && direction !== "LEFT") {
+                direction = "RIGHT";
+            }
+
+        });
+
+        function drawGame() {
+
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw snake
+
+            snake.forEach(function(part, index) {
+
+                ctx.fillStyle = index === 0 ? "lime" : "green";
+
+                ctx.fillRect(part.x, part.y, box, box);
+
+                ctx.strokeStyle = "black";
+
+                ctx.strokeRect(part.x, part.y, box, box);
+
+            });
+
+            // Draw food
+
+            ctx.fillStyle = "red";
+
+            ctx.fillRect(food.x, food.y, box, box);
+
+            // Snake movement
+
+            let headX = snake[0].x;
+
+            let headY = snake[0].y;
+
+            if (direction === "UP") headY -= box;
+
+            if (direction === "DOWN") headY += box;
+
+            if (direction === "LEFT") headX -= box;
+
+            if (direction === "RIGHT") headX += box;
+
+            let ateFood = headX === food.x && headY === food.y;
+
+            // Check wall collision
+
+            if (
+                headX < 0 ||
+                headY < 0 ||
+                headX >= canvas.width ||
+                headY >= canvas.height
+            ) {
+                endGame();
+                return;
+            }
+
+            // Check body collision
+
+            let bodyToCheck = ateFood ? snake : snake.slice(0, -1);
+
+            for (let part of bodyToCheck) {
+
+                if (headX === part.x && headY === part.y) {
+                    endGame();
+                    return;
+                }
+            }
+
+            snake.unshift({ x: headX, y: headY });
+
+            // Eat food
+
+            if (ateFood) {
+
+                score += 10;
+
+                document.getElementById("score").innerHTML = score;
+
+                createFood();
+
+            } else {
+
+                snake.pop();
+
+            }
+        }
+
+        function createFood() {
+
+            do {
+
+                food.x = Math.floor(Math.random() * 20) * box;
+
+                food.y = Math.floor(Math.random() * 20) * box;
+
+            } while (
+                snake.some(part => part.x === food.x && part.y === food.y)
+            );
+        }
+
+        function endGame() {
+
+            gameOver = true;
+
+            clearInterval(gameLoop);
+
+            ctx.fillStyle = "white";
+
+            ctx.font = "35px Arial";
+
+            ctx.fillText("GAME OVER", 95, 190);
+
+            ctx.font = "20px Arial";
+
+            ctx.fillText("Your Score: " + score, 135, 230);
+        }
+
+        function restartSnake() {
+
+            startSnake();
+
+        }
+
+        // Start Snake Game
+
+        startSnake();
+
+    </script>
+
+</body>
+</html>Ex.html
